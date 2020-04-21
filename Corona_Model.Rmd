@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-```{r formatting}
+```{r formatting and part a}
 #these libraries are necessary
 
 install.packages(forecast)
@@ -41,7 +41,7 @@ file <- read_excel(tf)
 file$dateRep <- as.POSIXct(file$dateRep, format = "%Y-%m-%d", tz = "America/New_York")
 
 # subset data - eliminate approximately 10% of data
-subsetfile <- subset(file, datetime >= as.POSIXct('2020-01-01') & datetime 
+subsetfile <- subset(file, dateRep >= as.POSIXct('2020-01-01') & dateRep 
             <= as.POSIXct('2020-03-10'))
 
 ```
@@ -58,6 +58,13 @@ US_series <- ts(US_data)
 
 plot(US_series)
 
+```
+
+```{r part b}
+acf2(US_series)
+
+#We must first observe a second wave before we can consider seasonality 
+#calling the acf function we can observe that the model is an AR(1) model 
 ```
 
 ```{r sdf_test}
