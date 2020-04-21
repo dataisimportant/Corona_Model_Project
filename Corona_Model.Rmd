@@ -1,0 +1,104 @@
+---
+title: "Corona Model"
+author: "Abdelrahman Hammad"
+date: "3/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+```{r cars}
+#these libraries are necessary
+
+install.packages(forecast)
+
+library(readxl)
+library(dplyr)
+library(httr)
+library(tseries)
+library(astsa)
+library(forecast)
+
+#create the URL where the dataset is stored with automatic updates every day
+
+url <- paste("https://www.ecdc.europa.eu/sites/default/files/documents/COVID-19-geographic-disbtribution-worldwide-",format(Sys.time(), "%Y-%m-%d"), ".xlsx", sep = "")
+
+#download the dataset from the website to a local temporary file
+
+GET(url, authenticate(":", ":", type="ntlm"), write_disk(tf <- tempfile(fileext = ".xlsx")))
+
+#read the Dataset sheet into “R”
+
+file <- read_excel(tf)
+
+US <- filter(file, geoId == "US")
+
+US_data  <- data.frame(Cases = US$cases)
+US_data
+US_data  <- US_data[order(US_data$Cases),]
+
+
+US_series <- ts(US_data)
+
+plot(US_series)
+
+```
+
+```{r sdf_test}
+
+#Let's test for serial correlation of the data...
+Box.test(US_series, type = "Ljung-Box")
+
+#Let's check if the data is stationary...
+adf.test(US_series, alternative = "stationary")
+
+``` 
+
+```{r model_fitting}
+
+models <- forecast(US_series, h = 7)
+
+summary(models)
+
+
+plot(forecast(models))
+
+models
+```
+
+```{r infected cases}
+
+infected = 0
+
+infected_rates = c(1:84)
+
+for(i in 1:84){
+  
+  infected = infected + US_data[i]
+  infected_rates[i] = infected
+}
+
+infected_ts = ts(infected_rates)
+plot(infected_ts)
+
+```
+
+
+
+```{r model_fitting2}
+
+model2 <- forecast(infected_ts, h = 7)
+
+summary(model2)
+
+plot(forecast(model2))
+
+model2
+```
+
+
