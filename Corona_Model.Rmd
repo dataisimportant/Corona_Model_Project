@@ -12,10 +12,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-```{r cars}
+```{r formatting}
 #these libraries are necessary
 
 install.packages(forecast)
+install.packages("lubridate")
+install.packages("ggplot2")
+
 
 library(readxl)
 library(dplyr)
@@ -24,19 +27,27 @@ library(tseries)
 library(astsa)
 library(forecast)
 
-#create the URL where the dataset is stored with automatic updates every day
 
+#create the URL where the dataset is stored with automatic updates every day
 url <- paste("https://www.ecdc.europa.eu/sites/default/files/documents/COVID-19-geographic-disbtribution-worldwide-",format(Sys.time(), "%Y-%m-%d"), ".xlsx", sep = "")
 
 #download the dataset from the website to a local temporary file
-
 GET(url, authenticate(":", ":", type="ntlm"), write_disk(tf <- tempfile(fileext = ".xlsx")))
 
 #read the Dataset sheet into “R”
-
 file <- read_excel(tf)
 
-US <- filter(file, geoId == "US")
+# make sure the date is formatted properly
+file$dateRep <- as.POSIXct(file$dateRep, format = "%Y-%m-%d", tz = "America/New_York")
+
+# subset data - eliminate approximately 10% of data
+subsetfile <- subset(file, datetime >= as.POSIXct('2020-01-01') & datetime 
+            <= as.POSIXct('2020-03-10'))
+
+```
+
+```{r start analysis}
+US <- filter(subsetfile, geoId == "US")
 
 US_data  <- data.frame(Cases = US$cases)
 US_data
