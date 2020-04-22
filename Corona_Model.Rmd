@@ -50,15 +50,18 @@ subsetfile <- subset(file, dateRep >= as.POSIXct('2020-01-01') & dateRep
 US <- filter(subsetfile, geoId == "US")
 
 US_data  <- data.frame(Cases = US$cases)
-US_data
+
 US_data  <- US_data[order(US_data$Cases),]
 
 
 US_series <- ts(US_data)
 
 plot(US_series)
-
 ```
+
+Description of the data:
+
+	 The chosen dataset contains the amount of new cases of COVID-19 diagnosed daily across all infected countries. This project will specifically focus on COVID-19 cases reported per day in the United States since January 2, 2020. It was obtained from the European Union CDC equivalent ( European Union Center for Disease Control and Prevention ) and is updated daily with the amount of new cases. This growing data set is mitigated by only keeping track of a two month (60 days) span during the peak of the outbreak in the United States.
 
 ```{r part b}
 acf2(US_series)
@@ -76,6 +79,58 @@ Box.test(US_series, type = "Ljung-Box")
 adf.test(US_series, alternative = "stationary")
 
 ``` 
+
+
+```{r transformation/differencing}
+# cube root tranformation
+cuberoot_US_series = (US_series)^(1/3)
+plot(cuberoot_US_series,type = 'l')
+
+# cube root first difference
+US_series_cube_diff1 = diff(cuberoot_US_series)
+plot(US_series_cube_diff1, type='l')
+
+# cube root second difference
+US_series_cube_diff2 = diff(US_series_cube_diff1)
+plot(US_series_cube_diff2, type='l')
+
+###-------------------------------------------------
+
+# checking for autocorrelation
+Box.test(US_series_cube_diff2, type = "Ljung-Box")
+
+# checking stationarity of cube root second difference 
+adf.test(US_series_cube_diff2, alternative = "stationary")
+
+```
+
+
+Transformations and Differencing to Achieve Stationarity
+
+	From the plot of the data, there is an obvious increasing exponential trend in the number of cases over time. In order to make the data stationary, the data went through a cube root transformation and second differencing. This was proven by using the Augmented Dickey-Fuller Test which provided a significant p-value. 
+
+```{r model selection}
+acf2(US_series_cube_diff2)
+
+# fitting several models
+MA1_diff_2 = sarima(US_series_cube_diff2, p=0, d=0, q=1)
+MA1_diff_2
+
+AR1_diff_2 = sarima(US_series_cube_diff2, p=1, d=0, q=0)
+AR1_diff_2
+
+AR4_diff_2 = sarima(US_series_cube_diff2, p=4, d=0, q=0)
+AR4_diff_2
+
+```
+
+Model Selection:
+
+  From the ACF and PACF of the transformed data, there were several model options to explore ( MA(1), AR(1), AR(4) ). The best model for the data is the AR(4) model because it had the lowest variance, lowest AIC, and lowest BIC. 
+
+Residual Analysis:
+
+	With the AR(4) model, most of the residual assumptions are satisfied. For example, the assumptions of normality, correlation, and independence of the residuals have been satisfied. However, the standardized residuals are not uniformly distributed around the mean. 
 
 ```{r model_fitting}
 
