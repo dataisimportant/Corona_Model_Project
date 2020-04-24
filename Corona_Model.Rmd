@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Final Project : Part 2
 
-Here we are loading in the data and necessary libraries. In addition, we are eliminating approximately 10% of data, Start date is 2020-01-1 and the end date is 2020-04-23, cutoff for 90% of total data is 2020-04-12.
+Here we are loading in the data and necessary libraries. In addition, we are eliminating approximately 10% of data, Start date is 2020-03-12 and the end date is 2020-04-23, cutoff for 90% of total data is 2020-04-19.
 
 ```{r formatting and part a, message = F, echo = F}
 #these libraries are necessary
@@ -42,8 +42,8 @@ file <- read_excel(tf)
 file$dateRep <- as.POSIXct(file$dateRep, format = "%Y-%m-%d", tz = "America/New_York")
 
 # subset data - eliminate approximately 10% of data
-subsetfile <- subset(file, dateRep >= as.POSIXct('2020-01-1') & dateRep 
-            <= as.POSIXct('2020-04-12'))
+subsetfile <- subset(file, dateRep >= as.POSIXct('2020-03-12') & dateRep 
+            <= as.POSIXct('2020-04-19'))
 
 ```
 
@@ -139,7 +139,7 @@ AR1_diff_2
 
 ```{r forecast}
 
-sarima.for(US_series, n.ahead=12, p=1, d=2, q=0, P=0, D=0, Q=0, S=0)
+sarima.for(US_series, n.ahead=4, p=0, d=2, q=1, P=0, D=0, Q=0, S=0)
 
 ```
 
