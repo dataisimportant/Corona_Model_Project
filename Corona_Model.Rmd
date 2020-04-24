@@ -77,29 +77,27 @@ calling the acf function we can observe that the model is an AR(1) model
 
 ```{r transformation/differencing}
 
-# log tranformation
-US_series.ln = log(US_series)
-plot(US_series.ln,type = 'l')
+#Differencing of order 1
 
-# log tranformation first difference
-US_series.ln.diff1 = diff(US_series.ln)
-plot(US_series.ln.diff1, type='l')
+US_series.dff1 = diff(US_series)
+plot(US_series.dff1)
 
-# log tranformation second difference
-US_series.ln.diff2 = diff(US_series.ln.diff1)
-plot(US_series.ln.diff2, type='l')
+#Differencing of order 2
+
+US_series.dff2 = diff(US_series.dff1)
+plot(US_series.dff2)
 
 ###-------------------------------------------------
 
-
-US_series.ln.diff2 <- US_series.ln.diff2[!is.na(US_series.ln.diff2)]
-US_series.ln.diff2 <- US_series.ln.diff2[-1]
- 
+# checking for autocorrelation
+Box.test(US_series.dff1, type = "Ljung-Box")
+# checking stationarity of second ln difference 
+adf.test(US_series.dff1, alternative = "stationary")
 
 # checking for autocorrelation
-Box.test(US_series.ln.diff2, type = "Ljung-Box")
+Box.test(US_series.dff2, type = "Ljung-Box")
 # checking stationarity of second ln difference 
-adf.test(US_series.ln.diff2, alternative = "stationary")
+adf.test(US_series.dff2, alternative = "stationary")
 
 
 ```
@@ -110,18 +108,21 @@ adf.test(US_series.ln.diff2, alternative = "stationary")
 
 ```{r model selection}
 
-acf2(US_series.ln.diff2, stationary = TRUE, seasonal = FALSE)
+acf2(US_series.dff2)
+
+#Utilizing auto_arima
+
+auto.arima(US_series.dff2, ic = 'aic', stationary = T, seasonal = F)
+auto.arima(US_series.dff2, ic = 'bic', stationary = T, seasonal = F)
+auto.arima(US_series.dff2, ic = 'aicc', stationary = T, seasonal = F)
 
 # fitting several models
 
-MA1_diff_2 = sarima(US_series.ln.diff2, p=0, d=0, q=1)
+MA1_diff_2 = sarima(US_series.dff2, p=0, d=0, q=1)
 MA1_diff_2
 
-AR1_diff_2 = sarima(US_series.ln.diff2, p=1, d=0, q=0)
+AR1_diff_2 = sarima(US_series.dff2, p=1, d=0, q=0)
 AR1_diff_2
-
-AR4_MA3_diff_2 = sarima(US_series.ln.diff2, p=4, d=0, q=3)
-AR4_MA3_diff_2
 
 ```
 
@@ -135,11 +136,10 @@ AR4_MA3_diff_2
 
 
 ## Forecast/Predict the withheld data
+
 ```{r forecast}
 
-sarima.for(US_series.ln.diff2, n.ahead=5, p=4, d=0, q=3, P=0, D=0, Q=0, S=0)
-US_series.ln = US_series.ln[-(1:15)]
-sarima.for(US_series.ln, n.ahead=12, p=4, d=2, q=3, P=0, D=0, Q=0, S=0)
+sarima.for(US_series, n.ahead=12, p=1, d=2, q=0, P=0, D=0, Q=0, S=0)
 
 ```
 
