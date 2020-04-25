@@ -1,7 +1,7 @@
 ---
-title: "Corona Model"
-author: "Abdelrahman Hammad"
-date: "3/21/2020"
+title: Final Project Part 2
+author: "Abdelrahman Hammad, Cassie Biffle, Lilian Wong, Noah Osman"
+date: 
 output: html_document
 ---
 
@@ -9,11 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Final Project : Part 2
-
-Here we are loading in the data and necessary libraries. In addition, we are eliminating approximately 10% of data, Start date is 2020-03-12 and the end date is 2020-04-23, cutoff for 90% of total data is 2020-04-19.
-
-```{r formatting and part a, message = F, echo = F}
+```{r formatting and part a, message = F, echo = F, warning = F, results='hide'}
 #these libraries are necessary
 
 #install.packages(forecast)
@@ -53,7 +49,11 @@ subsetfile <- subset(file, dateRep >= as.POSIXct('2020-03-12') & dateRep
 
 ## Description of the data including a plot
 
-```{r Plotting data}
+	 The chosen dataset contains the amount of new cases of COVID-19 diagnosed daily across all infected countries. This project will specifically focus on COVID-19 cases reported per day in the United States since March 12, 2020. It was obtained from the European Union CDC equivalent ( European Union Center for Disease Control and Prevention ) and is updated daily with the amount of new cases. This growing data set is mitigated by only keeping track of a two month (60 days) span during the peak of the outbreak in the United States. 
+	 
+	 For this submission, we are eliminating approximately 10% of data. For reference, the start date is March 12, 2020 and the end date is April 19,2020.
+
+```{r Plotting data, echo=FALSE}
 US <- filter(subsetfile, geoId == "US")
 
 US_data  <- data.frame(Cases = US$cases)
@@ -63,36 +63,33 @@ US_data  <- US_data[order(US_data$Cases),]
 
 US_series <- ts(US_data)
 
-plot(US_series)
+plot(US_series, main="Number of COVID-19 Cases in the US", xlab="Time (Days)", ylab="Number of Cases")
 ```
 
-	 The chosen dataset contains the amount of new cases of COVID-19 diagnosed daily across all infected countries. This project will specifically focus on COVID-19 cases reported per day in the United States since January 2, 2020. It was obtained from the European Union CDC equivalent ( European Union Center for Disease Control and Prevention ) and is updated daily with the amount of new cases. This growing data set is mitigated by only keeping track of a two month (60 days) span during the peak of the outbreak in the United States.
-
-```{r part b}
+```{r part b,message = F, echo = F, warning = F,results='hide',fig.show='hide'}
 
 acf2(US_series)
-
+# We must first observe a second wave before we can consider seasonality calling the acf function we can observe that the model is an AR(1) model 
 ```
 
-We must first observe a second wave before we can consider seasonality 
-calling the acf function we can observe that the model is an AR(1) model 
+## Transformations and/or Differencing to achieve stationarity
 
-## Transformations and/or differencing to achieve stationarity
+	From the plot of the original untransformed data, there is an obvious increasing trend in the number of cases over time. In order to make this data stationary, the data went through differencing of order 2. The second order differencing plot below addresses and fixed the problem in the original data.
 
-```{r transformation/differencing}
-
+```{r transformation/differencing, message = F, echo = F, warning = F,results='hide',fig.show='hide'}
 #Differencing of order 1
-
 US_series.dff1 = diff(US_series)
-plot(US_series.dff1)
+plot(US_series.dff1,main="Number of COVID-19 Cases in the US \n(Differencing of Order 1)", xlab="Time (Days)", ylab="Number of Cases")
+```
 
+```{r differencing 2, echo=F}
 #Differencing of order 2
-
 US_series.dff2 = diff(US_series.dff1)
-plot(US_series.dff2)
+plot(US_series.dff2,main="Number of COVID-19 Cases in the US \n(Differencing of Order 2)", xlab="Time (Days)", ylab="Number of Cases")
+```
 
+```{r output for tests, message = F, echo = F, warning = F,results='hide',fig.show='hide'}
 ###-------------------------------------------------
-
 # checking for autocorrelation
 Box.test(US_series.dff1, type = "Ljung-Box")
 # checking stationarity of second ln difference 
@@ -102,18 +99,13 @@ adf.test(US_series.dff1, alternative = "stationary")
 Box.test(US_series.dff2, type = "Ljung-Box")
 # checking stationarity of second ln difference 
 adf.test(US_series.dff2, alternative = "stationary")
-
-
 ```
-
-	From the plot of the data, there is an obvious increasing exponential trend in the number of cases over time. In order to make the data stationary, the data went through a cube root transformation and second differencing. This was proven by using the Augmented Dickey-Fuller Test which provided a significant p-value. 
 	
 ## Estimated SARIMA model
 
-```{r model selection}
+The estimated SARIMA model for the data is ARMA(0,2,1). 
 
-acf2(US_series.dff2)
-
+```{r model selection2,  message = F, echo = F, warning = F,results='hide',fig.show='hide'}
 #Utilizing auto_arima
 
 auto.arima(US_series.dff2, ic = 'aic', stationary = T, seasonal = F)
@@ -122,31 +114,80 @@ auto.arima(US_series.dff2, ic = 'aicc', stationary = T, seasonal = F)
 
 # fitting several models
 
-MA1_diff_2 = sarima(US_series.dff2, p=0, d=0, q=1)
-MA1_diff_2
-
 AR1_diff_2 = sarima(US_series.dff2, p=1, d=0, q=0)
 AR1_diff_2
 
+MA1_diff_2 = sarima(US_series.dff2, p=0, d=0, q=1)
+MA1_diff_2
 ```
 
 ## Model Selection:
 
-  From the ACF and PACF of the transformed data, there were several model options to explore ( MA(1), AR(1), AR(4) ). The best model for the data is the AR(4) model because it had the lowest variance, lowest AIC, and lowest BIC. 
+  From the ACF and PACF plots of the differenced data, there were several model options to explore ( MA(1) and AR(1) ). The best model for the data is the MA(1) model with second order differencing because it had the lowest variance, lowest AIC, and lowest BIC. 
 
 ## Residual Analysis:
 
-	With the AR(4) model, most of the residual assumptions are satisfied. For example, the assumptions of normality, correlation, and independence of the residuals have been satisfied. However, the standardized residuals are not uniformly distributed around the mean. 
+```{r model selection3, message = F, echo = F, warning = F,results='hide'}
+MA1_diff_2 = sarima(US_series.dff2, p=0, d=0, q=1)
+```
 
+	With the MA(1) model, all of the residual assumptions are satisfied. For example, the assumptions of normality, correlation, independence of the residuals have been satisfied. Also, the standardized residuals are mostly distributed around the mean. 
 
 ## Forecast/Predict the withheld data
 
-```{r forecast}
-
+```{r forecast, echo=F}
 sarima.for(US_series, n.ahead=4, p=0, d=2, q=1, P=0, D=0, Q=0, S=0)
-
 ```
 
+## Appendix
+```{r Appendix, eval = F}
+#create the URL where the dataset is stored with automatic updates every day
+url <- paste("https://www.ecdc.europa.eu/sites/default/files/documents/COVID-19-geographic-disbtribution-worldwide-",format(Sys.time(), "%Y-%m-%d"), ".xlsx", sep = "")
 
+#download the dataset from the website to a local temporary file
+GET(url, authenticate(":", ":", type="ntlm"), write_disk(tf <- tempfile(fileext = ".xlsx")))
 
+#read the Dataset sheet into “R”
+file <- read_excel(tf)
 
+# make sure the date is formatted properly
+file$dateRep <- as.POSIXct(file$dateRep, format = "%Y-%m-%d", tz = "America/New_York")
+
+# Removing the last 10 percent of data
+subsetfile <- subset(file, dateRep >= as.POSIXct('2020-03-12') & dateRep 
+            <= as.POSIXct('2020-04-19')
+```
+
+```{r appendix2}
+# Differencing of order 1
+US_series.dff1 = diff(US_series)
+plot(US_series.dff1,main="Number of COVID-19 Cases in the US \n(Differencing of Order 1)", xlab="Time (Days)", ylab="Number of Cases")
+```
+
+```{r appendix3, eval=F}
+# Differencing of order 2
+US_series.dff2 = diff(US_series.dff1)
+plot(US_series.dff2,main="Number of COVID-19 Cases in the US \n(Differencing of Order 2)", xlab="Time (Days)", ylab="Number of Cases")
+```
+
+```{r appendix4}
+# ACF and PACF plots
+acf.pacf = acf2(US_series.dff2)
+
+#Utilizing auto_arima
+auto.arima(US_series.dff2, ic = 'aic', stationary = T, seasonal = F)
+auto.arima(US_series.dff2, ic = 'bic', stationary = T, seasonal = F)
+auto.arima(US_series.dff2, ic = 'aicc', stationary = T, seasonal = F)
+
+# Fitting AR(1) model with 2nd order differencing
+AR1_diff_2 = sarima(US_series.dff2, p=1, d=0, q=0)
+AR1_diff_2
+# Fitting MA(1) model with 2nd order differencing
+MA1_diff_2 = sarima(US_series.dff2, p=0, d=0, q=1)
+MA1_diff_2
+```
+
+```{r appendix5, eval=F}
+# Forecast
+sarima.for(US_series, n.ahead=4, p=0, d=2, q=1, P=0, D=0, Q=0, S=0)
+```
