@@ -136,8 +136,62 @@ MA1_diff_2 = sarima(US_series.dff2, p=0, d=0, q=1)
 ## Forecast/Predict the withheld data
 
 ```{r forecast, echo=F}
-sarima.for(US_series, n.ahead=4, p=0, d=2, q=1, P=0, D=0, Q=0, S=0)
+Forecast = sarima.for(US_series, n.ahead=4, p=0, d=2, q=1, P=0, D=0, Q=0, S=0)
 ```
+
+## What percentage of the prediction intervals (2 s.e.) contained the actual values.
+
+Actual data of those days:
+
+April 23 37289
+April 22 35527
+April 21 34272
+April 20 33901
+
+
+
+```{r forecast2}
+
+high = Forecast$pred + 2*Forecast$se
+low = Forecast$pred - 2*Forecast$se
+
+cbind(low,high)
+
+```
+
+
+100% of the actual data entries were within the confidence intervals for each day. 
+
+## Calculate the Mean Absolute Prediction Error.
+```{r forecast3}
+
+# Complete the tables below. 𝑒ℎ=𝑥ℎ−𝑥̂ℎ where 𝑥̂ℎ is the h –step ahead t
+
+table = data.frame(actual = c(33901, 34272, 35527, 37289), expected = Forecast$pred)
+
+table$error = table$actual - table$expected
+
+table
+
+Mean_Absolute_Prediction_Error = (-1*sum(table$error))/4
+Mean_Absolute_Prediction_Error
+
+```
+
+The Mean Absolute Prediction Error is approximately 2075.289, on average we average an error of approximate 2075 cases a day.
+
+
+## Calculate the Root Mean Squared Prediction Error.
+```{r forecast4}
+
+table$error = (table$error)^2
+
+RSME = sum(table$error)/4
+
+RSME
+```
+
+The RSME is 2.643677e+13, which is relatively large. 
 
 ## Appendix
 ```{r Appendix, eval = F}
