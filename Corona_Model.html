@@ -421,24 +421,36 @@ cbind(low,high)</code></pre>
 ## 40 34217.08 39709.78
 ## 41 33849.96 41513.34
 ## 42 33427.31 43372.41</code></pre>
+<p>100% of the actual data entries were within the confidence intervals for each day.</p>
 </div>
 <div id="calculate-the-mean-absolute-prediction-error." class="section level2">
 <h2>Calculate the Mean Absolute Prediction Error.</h2>
 <pre class="r"><code># Complete the tables below. 𝑒ℎ=𝑥ℎ−𝑥̂ℎ where 𝑥̂ℎ is the h –step ahead t
 
-table = data.frame(actual = c(33901, 34272, 355527, 37289), expected = Forecast$pred)
+table = data.frame(actual = c(33901, 34272, 35527, 37289), expected = Forecast$pred)
 
 table$error = table$actual - table$expected
 
 table</code></pre>
-<pre><code>##   actual expected      error
-## 1  33901 36245.22  -2344.215
-## 2  34272 36963.43  -2691.431
-## 3 355527 37681.65 317845.354
-## 4  37289 38399.86  -1110.862</code></pre>
+<pre><code>##   actual expected     error
+## 1  33901 36245.22 -2344.215
+## 2  34272 36963.43 -2691.431
+## 3  35527 37681.65 -2154.646
+## 4  37289 38399.86 -1110.862</code></pre>
+<pre class="r"><code>Mean_Absolute_Prediction_Error = (-1*sum(table$error))/4
+Mean_Absolute_Prediction_Error</code></pre>
+<pre><code>## [1] 2075.289</code></pre>
+<p>The Mean Absolute Prediction Error is approximately 2075.289, on average we average an error of approximate 2075 cases a day.</p>
 </div>
 <div id="calculate-the-root-mean-squared-prediction-error." class="section level2">
 <h2>Calculate the Root Mean Squared Prediction Error.</h2>
+<pre class="r"><code>table$error = (table$error)^2
+
+RSME = sum(table$error)/4
+
+RSME</code></pre>
+<pre><code>## [1] 4653915</code></pre>
+<p>The RSME is 2.643677e+13, which is relatively large.</p>
 </div>
 <div id="appendix" class="section level2">
 <h2>Appendix</h2>

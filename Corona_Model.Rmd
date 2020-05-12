@@ -1,5 +1,5 @@
 ---
-title: Final Project Part 2
+title: Final Project Final (Including Part 3)
 author: "Abdelrahman Hammad, Cassie Biffle, Lilian Wong, Noah Osman"
 date: 
 output: html_document
